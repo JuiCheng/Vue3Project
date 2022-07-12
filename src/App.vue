@@ -1,30 +1,32 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <v-app>
+    <div>
+
+            <p>{{ t('回首頁') }}</p>
+        </div>
+    <v-main>
+      <router-view/>
+    </v-main>
+  </v-app>
 </template>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script lang="ts">
+import { defineComponent, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+export default defineComponent({
+  name: 'App',
 
-nav {
-  padding: 30px;
+  setup () {
+    const { t, locale } = useI18n()
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
+    watch(locale, (newlocale) => {
+      localStorage.setItem('locale', newlocale)
+    })
 
-    &.router-link-exact-active {
-      color: #42b983;
+    return {
+      t,
+      locale
     }
   }
-}
-</style>
+})
+</script>
