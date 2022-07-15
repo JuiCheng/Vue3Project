@@ -18,7 +18,7 @@ export default defineComponent({
 
   setup () {
     const { t, locale } = useI18n()
-
+    console.log(process.env.NODE_ENV)
     watch(locale, (newlocale) => {
       localStorage.setItem('locale', newlocale)
     })

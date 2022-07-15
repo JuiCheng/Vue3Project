@@ -1,6 +1,10 @@
 import { createStore } from 'vuex'
 import SecureLS from 'secure-ls'
+import axios from 'axios'
 import createPersistedState from 'vuex-persistedstate'
+import auth from './auth'
+import Url from './Url'
+
 const ls = new SecureLS({ isCompression: false })
 export default createStore({
   state: {
@@ -15,8 +19,54 @@ export default createStore({
     }
   },
   actions: {
+    RESTfulPost: async function (commit, payload) {
+      const headers = {
+        'Content-Type': 'application/json',
+        token: auth.state.token
+      }
+      const response = axios
+        .post(payload.URL, payload.Data, {
+          headers: headers,
+          params: payload.params
+        })
+        .then(response => {
+          return response.data
+        })
+        .catch(function (error) { // 请求失败处理
+          console.log(error)
+          if (error.response.status === 401) {
+            // alert('登入驗證過期，請重新登入')
+            // router.push('/error/401')
+          }
+        })
+      return response
+    },
+    RESTfulGet: async function (commit, payload) {
+      const headers = {
+        'Content-Type': 'application/json',
+        token: auth.state.token
+      }
+      const response = axios
+        .get(payload.URL, {
+          headers: headers,
+          params: payload.params
+        })
+        .then(response => {
+          return response.data
+        })
+        .catch(function (error) { // 请求失败处理
+          if (error.response.status === 401) {
+            // alert('登入驗證過期，請重新登入')
+            // router.push('/error/401')
+          }
+        })
+      // // console.log(response)
+      return response
+    }
   },
   modules: {
+    auth,
+    Url
   },
   plugins: [
     createPersistedState({

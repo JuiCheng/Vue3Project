@@ -22,12 +22,16 @@
     <v-btn icon>
       <v-icon>mdi-dots-vertical</v-icon>
     </v-btn>
+    <Search v-model:inputText="searchText" @search="handleSearch"/>
+    {{ name }}
+    {{ searchText }}
   </v-app-bar>
 </template>
 
 <script lang="ts">
+import Search from '@/components/Search.vue'
 import { useStore } from 'vuex'
-import { defineComponent, computed, onMounted, onErrorCaptured, ref, reactive, watch, watchEffect } from 'vue'
+import { defineComponent, computed, onMounted, onErrorCaptured, ref, reactive, watch, watchEffect, provide, readonly } from 'vue'
 interface Student {
   name: string
   class?: string
@@ -36,11 +40,24 @@ interface Student {
 // Component API
 export default defineComponent({
   name: 'IndexView',
+  components: { Search },
   setup () {
     // vuex
     const store = useStore()
-    // vuex 取值
-    console.log(store.state.UserInfo.id)
+    console.log(store.state.UserInfo.id) // vuex 取值
+    store.commit('auth/setToken', 'tttttt') // vuex mutations 呼叫
+    console.log(store.state.auth.token)// vuex auth取值
+    const setLang = () => { // vuex actions 呼叫
+      const response = store.dispatch('RESTfulGet', {
+        // eslint-disable-next-line no-undef
+        URL: `${store.state.Url.I18NLang}`
+      })
+      response.then(function (response) {
+        console.log(response)
+      })
+    }
+
+    // ref reactive
     // ref : 可以接受任何型態的資料，但是不會對物件或陣列內部的屬性變動做監聽。
     // reactive : 只能接受 Object 或 Array，會對內部的屬性變動做深層的監聽，取資料時不需要 .value。
     const msg = ref('123')
@@ -49,14 +66,20 @@ export default defineComponent({
     month.value = 9 // OK
     const student = reactive<Student>({ name: '阿勇', age: 16 })
 
+    // components v-model 範例
+    const searchText = ref('')
+    const handleSearch = () => {
+      console.log(searchText.value)
+    }
+
+    // function
     const test = () => {
-      // function
       // ref 取值必須.value
       msg.value = '123546'
       return msg.value
     }
-    // watch 監聽 msg
-    // watch 無法監聽整個物件
+
+    // watch 監聽 msg，無法監聽整個物件
     watch(msg, (newVal, oldVal) => {
       console.log('ref-newVal:', newVal)
       console.log('ref-oldVal:', oldVal)
@@ -88,7 +111,21 @@ export default defineComponent({
       console.log('sex', obj.sex)
     })
 
-    // 畫面載入完成後呼叫
+    // Provide  Inject
+    const name = ref('name')
+    provide('name', name)
+    const states = reactive({
+      name: 'James',
+      old: 75
+      // ...
+    })
+    const handleAfterBirthday = () => {
+      states.old = states.old + 1
+    }
+    provide('grandpaStates', readonly(states)) // readonly 保護他，只有修改函式可以更動 states 。
+    provide('grandpaDispatch', { handleAfterBirthday })
+
+    // Mounted 畫面載入完成後呼叫
     onMounted(() => {
       // 呼叫Vuex mutations
       store.commit('SetUserInfo', { id: 3, account: '113' })
@@ -98,10 +135,12 @@ export default defineComponent({
       //   amount: 10
       // })
     })
-    // computed
+
+    // computed 計算式
     const nums = computed(() => {
       return num.value * 3
     })
+
     // 捕获一个来自子孙组件的错误时被调用。此钩子会收到三个参数：错误对象、发生错误的组件实例以及一个包含错误来源信息的字符串。此钩子可以返回 false 以阻止该错误继续向上传播。
     onErrorCaptured((err, vm, info) => {
       console.log(err)
@@ -115,10 +154,11 @@ export default defineComponent({
       student,
       month,
       nums,
-      test
+      test,
+      searchText,
+      handleSearch,
+      name
     }
-  },
-  components: {
   }
 })
 </script>
